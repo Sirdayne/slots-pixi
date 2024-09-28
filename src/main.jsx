@@ -19,11 +19,12 @@ import {
 {
     // Create a new application
     const app = new Application();
+    let balance = 1000;
 
     globalThis.__PIXI_APP__ = app;
 
     // Initialize the application
-    await app.init({ background: '#1099bb', resizeTo: window });
+    await app.init({ background: '#1099bb', width: 920, height: 720 });
 
     // Append the application canvas to the document body
     document.body.appendChild(app.canvas);
@@ -140,28 +141,55 @@ import {
     });
 
     const playText = new Text('Spin the wheels!', style);
-
     playText.x = Math.round((bottom.width - playText.width) / 2);
     playText.y = app.screen.height - margin + Math.round((margin - playText.height) / 2);
     bottom.addChild(playText);
 
     // Add header text
     const headerText = new Text('PIXI SLOTS', style);
-
     headerText.x = Math.round((top.width - headerText.width) / 2);
     headerText.y = Math.round((margin - headerText.height) / 2);
     top.addChild(headerText);
 
-    app.stage.addChild(top);
-    app.stage.addChild(bottom);
+    const balanceStyle = new TextStyle({
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fontStyle: 'italic',
+        fontWeight: 'bold',
+        fill: { fill: 0x180c96 },
+        stroke: { color: 0x180c96, width: 5 },
+        dropShadow: {
+            color: 0x000000,
+            angle: Math.PI / 6,
+            blur: 4,
+            distance: 6,
+        },
+        wordWrap: true,
+        wordWrapWidth: 440,
+    });
 
+    const balanceText = new Text(String(balance) + '$', balanceStyle);
+    balanceText.x = app.screen.width - 220;
+    balanceText.y = app.screen.height - margin + Math.round((margin - balanceText.height) / 1.8);
+    bottom.addChild(balanceText);
+
+    const spinBtn = new Graphics().circle(
+        app.screen.width - 80,
+        app.screen.height - margin + 68,
+        25).fill({ color: 0xd61539 })
     // Set the interactivity.
-    bottom.eventMode = 'static';
-    bottom.cursor = 'pointer';
-    bottom.addListener('pointerdown', () =>
+    spinBtn.eventMode = 'static';
+    spinBtn.cursor = 'pointer';
+    spinBtn.addListener('pointerdown', () =>
     {
         startPlay();
     });
+
+    bottom.addChild(spinBtn);
+
+    app.stage.addChild(top);
+    app.stage.addChild(bottom);
+
 
     let running = false;
 
@@ -208,12 +236,24 @@ import {
             showBigWin();
         } else {
             showHeaderMessage('TRY AGAIN !');
+            decreaseBalance()
         }
+    }
+
+    function decreaseBalance() {
+        balance = balance - 20;
+        balanceText.text = String(balance) + '$';
+    }
+
+    function increaseBalanceBy(win) {
+        balance = balance + win;
+        balanceText.text = String(balance) + '$';
     }
 
     function showBigWin() {
         shouldBlinkAndChangeColor = true;
         showHeaderMessage('BIG WIN !!!');
+        increaseBalanceBy(100);
         setTimeout(() => {
             shouldBlinkAndChangeColor = false;
             reels.forEach(reel => {
